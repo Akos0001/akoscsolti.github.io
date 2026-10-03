@@ -202,6 +202,60 @@
                 height: 500px;
             }
         }
+
+
+
+
+           
+        /* meglévő CSS */
+    
+        .excel-format {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            margin: 20px 0 35px 0;
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 10px;
+        }
+    
+        .excel-example {
+            width: 55%;
+            max-width: 700px;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+    
+        .excel-description {
+            flex: 1;
+        }
+    
+        .excel-description p {
+            margin-top: 0;
+        }
+    
+        .excel-description ul {
+            padding-left: 20px;
+        }
+    
+        .excel-description li {
+            margin-bottom: 6px;
+        }
+    
+        @media (max-width: 800px) {
+            .excel-format {
+                flex-direction: column;
+            }
+    
+            .excel-example {
+                width: 100%;
+                max-width: none;
+            }
+        }
+    
+        
+            
     </style>
 </head>
 
@@ -221,7 +275,7 @@
             weighted third-order polynomial fit in logarithmic space.
         </p>
 
-        %-------
+        
 
         <h2>Required Excel format</h2>
 
@@ -258,7 +312,7 @@
         </div>
 
 
-        %-----------
+       
         <h2>Process Excel file</h2>
 
         <div class="file-row">
