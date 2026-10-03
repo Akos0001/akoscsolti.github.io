@@ -261,6 +261,24 @@
 
         <div class="energy-section">
 
+            <h2>Measured data</h2>
+
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Energy [keV]</th>
+                            <th>Measured efficiency</th>
+                            <th>Fitted efficiency</th>
+                            <th>Absolute difference</th>
+                            <th>Relative difference [%]</th>
+                        </tr>
+                    </thead>
+
+                    <tbody></tbody>
+                </table>
+            </div>
+            
             <h2>2. Calculate efficiency at a given energy</h2>
 
             <div class="energy-row">
@@ -272,8 +290,7 @@
                 <input
                     type="number"
                     id="energyInput"
-                    step="any"
-                    placeholder="e.g. 661.657"
+                    step="any"                    
                 >
 
                 <button
@@ -356,23 +373,7 @@
         style="display: none;"
     >
 
-        <h2>Measured data</h2>
-
-        <div class="table-container">
-            <table id="resultsTable">
-                <thead>
-                    <tr>
-                        <th>Energy [keV]</th>
-                        <th>Measured efficiency</th>
-                        <th>Fitted efficiency</th>
-                        <th>Absolute difference</th>
-                        <th>Relative difference [%]</th>
-                    </tr>
-                </thead>
-
-                <tbody></tbody>
-            </table>
-        </div>
+        
 
     </div>
 
