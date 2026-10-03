@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Efficiency Calibration</title>
+
+    <!-- SheetJS: Excel file reading -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <!-- Plotly: plotting -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fa;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .file-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button.secondary {
+            background: #555;
+        }
+
+        .button.secondary:hover {
+            background: #444;
+        }
+
+        #fileName {
+            color: #555;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #e8f7ee;
+            color: #176b3a;
+        }
+
+        .message.error {
+            display: block;
+            background: #fdecec;
+            color: #a12626;
+        }
+
+        .energy-section {
+            margin-top: 25px;
+        }
+
+        .energy-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .energy-row input {
+            width: 180px;
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .result-box {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 7px;
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #plot {
+            width: 100%;
+            height: 650px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: right;
+        }
+
+        th {
+            background: #f0f2f5;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 25px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+            }
+
+            #plot {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <a class="back-link" href="../">
+        ← Back to main page
+    </a>
+
+    <div class="card">
+        <h1>Efficiency Calibration</h1>
+
+        <p class="subtitle">
+            Determine the detector efficiency from an Excel dataset using a
+            weighted third-order polynomial fit in logarithmic space.
+        </p>
+
+        <h2>1. Process Excel file</h2>
+
+        <div class="file-row">
+
+            <label for="fileInput" class="button">
+                Choose File
+            </label>
+
+            <input
+                type="file"
+                id="fileInput"
+                accept=".xlsx,.xls"
+            >
+
+            <span id="fileName">
+                No file selected
+            </span>
+
+            <button
+                id="processButton"
+                class="button"
+                type="button"
+            >
+                Process
+            </button>
+
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+
+    <div id="resultsCard" class="card" style="display: none;">
+
+        <h2>Efficiency calibration</h2>
+
+        <div id="plot"></div>
+
+        <div class="energy-section">
+
+            <h2>2. Calculate efficiency at a given energy</h2>
+
+            <div class="energy-row">
+
+                <label for="energyInput">
+                    Energy [keV]:
+                </label>
+
+                <input
+                    type="number"
+                    id="energyInput"
+                    step="any"
+                    placeholder="e.g. 661.657"
+                >
+
+                <button
+                    id="calculateButton"
+                    class="button"
+                    type="button"
+                >
+                    Calculate
+                </button>
+
+            </div>
+
+            <div id="energyResult" class="result">
+
+                <div class="result-grid">
+
+                    <div class="result-box">
+                        <div class="result-label">
+                            Energy
+                        </div>
+
+                        <div
+                            id="resultEnergy"
+                            class="result-value"
+                        >
+                            -
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="result-label">
+                            Efficiency
+                        </div>
+
+                        <div
+                            id="resultEfficiency"
+                            class="result-value"
+                        >
+                            -
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="result-label">
+                            Absolute uncertainty
+                        </div>
+
+                        <div
+                            id="resultUncertainty"
+                            class="result-value"
+                        >
+                            -
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="result-label">
+                            Relative uncertainty
+                        </div>
+
+                        <div
+                            id="resultRelativeUncertainty"
+                            class="result-value"
+                        >
+                            -
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div
+        id="dataCard"
+        class="card"
+        style="display: none;"
+    >
+
+        <h2>Measured data</h2>
+
+        <div class="table-container">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Energy [keV]</th>
+                        <th>Measured efficiency</th>
+                        <th>Fitted efficiency</th>
+                        <th>Absolute difference</th>
+                        <th>Relative difference [%]</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
