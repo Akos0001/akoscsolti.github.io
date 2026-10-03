@@ -970,9 +970,7 @@ async function processExcelFile(file) {
             "resultsCard"
         ).style.display = "block";
 
-        document.getElementById(
-            "dataCard"
-        ).style.display = "block";
+        
 
         showMessage(
             `Successful processing: ${file.name}`,
@@ -993,9 +991,7 @@ async function processExcelFile(file) {
             "resultsCard"
         ).style.display = "none";
 
-        document.getElementById(
-            "dataCard"
-        ).style.display = "none";
+        
     }
 }
 
