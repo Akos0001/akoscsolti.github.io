@@ -214,13 +214,49 @@
     </a>
 
     <div class="card">
-        <h1>Efficiency Calibration</h1>
+        <h1>Efficiency calibration for HPGe detectors</h1>
 
         <p class="subtitle">
             Determine the detector efficiency from an Excel dataset using a
             weighted third-order polynomial fit in logarithmic space.
         </p>
 
+        %-------
+
+        <h2>Required Excel format</h2>
+
+        <div class="excel-format">
+            <img src="static/excel_example.png"
+                 alt="Example of the required Excel file format"
+                 class="excel-example">
+        
+            <div class="excel-description">
+                <p>
+                    The Excel file must contain the measurement data in the following
+                    column order. The first row is treated as the header.
+                </p>
+        
+                <ul>
+                    <li><strong>Column 1:</strong> Energy [keV]</li>
+                    <li><strong>Column 2:</strong> Correction factor k [%]</li>
+                    <li><strong>Column 3:</strong> Net peak area N</li>
+                    <li><strong>Column 4:</strong> Relative uncertainty of N [%]</li>
+                    <li><strong>Column 5:</strong> Live time [s]</li>
+                    <li><strong>Column 8:</strong> Reference time t<sub>ref</sub> [s]</li>
+                    <li><strong>Column 9:</strong> Initial activity A<sub>0</sub> [kBq]</li>
+                    <li><strong>Column 10:</strong> Uncertainty of A<sub>0</sub> [kBq]</li>
+                    <li><strong>Column 11:</strong> Half-life T [s]</li>
+                </ul>
+        
+                <p>
+                    Columns 6 and 7 are not used by the calculation and may contain
+                    other data.
+                </p>
+            </div>
+        </div>
+
+
+        %-----------
         <h2>Process Excel file</h2>
 
         <div class="file-row">
