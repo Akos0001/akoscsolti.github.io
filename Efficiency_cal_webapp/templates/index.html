@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Efficiency Calculator</title>
+
+<style>
+    button,
+    .file-button {
+        padding: 2px 8px;
+        font-size: 13px;
+        font-family: Arial, sans-serif;
+        cursor: pointer;
+    }
+
+    .file-button {
+        display: inline-block;
+        border: 1px solid #767676;
+        border-radius: 2px;
+        background-color: #efefef;
+        color: #000;
+    }
+
+    .file-button:hover {
+        background-color: #e5e5e5;
+    }
+
+    #file-name {
+        margin-left: 8px;
+    }
+</style>
+
+
+</head>
+
+<body>
+
+
+<h1>Efficiency calibration for HPGe detectors</h1>
+
+
+<h2>Excel Data Processing</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <label for="file" class="file-button">
+        Choose file
+    </label>
+
+    <input
+        type="file"
+        id="file"
+        name="file"
+        accept=".xlsx,.xls"
+        required
+        style="display: none;"
+    >
+
+    <span id="file-name">No file chosen</span>
+
+    <button type="submit">
+        Process
+    </button>
+
+</form>
+
+
+{% if message %}
+
+    <p>
+        <strong>{{ message }}</strong>
+    </p>
+
+{% endif %}
+
+
+{% if result %}
+
+    <hr>
+
+    <h2>Results</h2>
+
+    <table border="1">
+
+        <tr>
+            <th>Energy [keV]</th>
+            <th>Measured efficiency</th>
+            <th>Fitted efficiency</th>
+            <th>Absolute difference</th>
+            <th>Relative difference [%]</th>
+        </tr>
+
+        {% for row in result["results"].itertuples() %}
+
+        <tr>
+
+            <td>
+                {{ "%.2f"|format(row[1]) }}
+            </td>
+
+            <td>
+                {{ "%.3e"|format(row[2]) }}
+            </td>
+
+            <td>
+                {{ "%.3e"|format(row[3]) }}
+            </td>
+
+            <td>
+                {{ "%.3e"|format(row[4]) }}
+            </td>
+
+            <td>
+                {{ "%.3f"|format(row[5]) }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    <h2>Efficiency Curve</h2>
+
+    <img
+        src="{{ url_for('static', filename='efficiency_plot.png') }}"
+        style="max-width: 900px; width: 100%;"
+    >
+
+
+    <hr>
+
+
+    <div id="energy-calculator">
+
+        <h2>Efficiency at a Given Energy</h2>
+
+        <p>
+            Enter the energy in keV. The program will calculate
+            the efficiency and its uncertainty based on the fitted curve.
+        </p>
+
+
+        <form method="POST">
+
+            <label for="energy">
+                Energy [keV]:
+            </label>
+
+            <input
+                type="number"
+                id="energy"
+                name="energy"
+                step="any"                
+                required
+            >
+
+            <button type="submit">
+                Calculate Efficiency
+            </button>
+
+        </form>
+
+
+        {% if energy_result %}
+
+            <h3>Calculated Value</h3>
+
+            <p>
+                Energy:
+                <strong>
+                    {{ "%.2f"|format(energy_result["energy_keV"]) }}
+                    keV
+                </strong>
+            </p>
+
+            <p>
+                Efficiency:
+                <strong>
+                    {{ "%.3e"|format(energy_result["eta"]) }}
+                </strong>
+            </p>
+
+            <p>
+                Absolute uncertainty:
+                <strong>
+                    ± {{ "%.3e"|format(energy_result["sigma_eta"]) }}
+                </strong>
+            </p>
+
+            <p>
+                Relative uncertainty:
+                <strong>
+                    {{ "%.2f"|format(energy_result["relative_uncertainty"]) }}
+                    %
+                </strong>
+            </p>
+
+            <p>
+                <strong>
+                    η =
+                    ({{ "%.3e"|format(energy_result["eta"]) }}
+                    ±
+                    {{ "%.3e"|format(energy_result["sigma_eta"]) }})
+                </strong>
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+{% endif %}
+
+
+{% if energy_result %}
+
+    <script>
+
+        window.onload = function() {
+
+            document
+                .getElementById("energy-calculator")
+                .scrollIntoView();
+
+        };
+
+    </script>
+
+{% endif %}
+
+
+<script>
+
+    document.getElementById("file").addEventListener("change", function() {
+
+        if (this.files.length > 0) {
+
+            document.getElementById("file-name").textContent =
+                this.files[0].name;
+
+        } else {
+
+            document.getElementById("file-name").textContent =
+                "No file chosen";
+
+        }
+
+    });
+
+</script>
+
+</body>
+
+</html>
