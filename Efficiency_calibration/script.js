@@ -1395,6 +1395,10 @@ document.addEventListener(
             document.getElementById(
                 "calculateButton"
             );
+        const saveCalibrationButton =
+            document.getElementById(
+                "saveCalibrationButton"
+            );
 
         const energyInput =
             document.getElementById(
@@ -1439,6 +1443,71 @@ document.addEventListener(
                     fileInput.files[0];
 
                 processExcelFile(file);
+            }
+        );
+
+        // --------------------------------------------------------
+        // Save calibration
+        // --------------------------------------------------------
+        
+        saveCalibrationButton.addEventListener(
+            "click",
+            () => {
+        
+                if (!currentResult) {
+        
+                    showMessage(
+                        "Please process an Excel file first.",
+                        "error"
+                    );
+        
+                    return;
+                }
+        
+                const calibrationData = {
+                    id: "hpge_calibration",
+                    name: "HPGe detector calibration",
+                    description: "Efficiency calibration",
+                    result: currentResult
+                };
+        
+                const json =
+                    JSON.stringify(
+                        calibrationData,
+                        null,
+                        4
+                    );
+        
+                const blob =
+                    new Blob(
+                        [json],
+                        {
+                            type: "application/json"
+                        }
+                    );
+        
+                const url =
+                    URL.createObjectURL(blob);
+        
+                const link =
+                    document.createElement("a");
+        
+                link.href = url;
+                link.download =
+                    "hpge_calibration.json";
+        
+                document.body.appendChild(link);
+        
+                link.click();
+        
+                document.body.removeChild(link);
+        
+                URL.revokeObjectURL(url);
+        
+                showMessage(
+                    "Calibration saved successfully.",
+                    "success"
+                );
             }
         );
 
@@ -1543,4 +1612,4 @@ document.addEventListener(
         );
     }
 );
-console.log(JSON.stringify(currentResult, null, 4));
+
