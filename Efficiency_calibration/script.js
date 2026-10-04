@@ -60,7 +60,9 @@ async function loadExistingCalibrations() {
 
         try {
 
-            const response = await fetch(file);
+            const response = await fetch(
+                file + "?v=" + Date.now()
+            );
 
             if (!response.ok) {
                 throw new Error(
