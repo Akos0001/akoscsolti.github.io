@@ -1,5 +1,73 @@
 let currentResult = null;
 
+// ============================================================
+// Existing calibrations
+// ============================================================
+//
+// Add your already calculated calibrations here.
+//
+// The values p and cov are the polynomial-fit coefficients and
+// covariance matrix returned by calculateEfficiency().
+//
+// The easiest way to obtain these values is to process the
+// original Excel file with this page and copy the corresponding
+// values from currentResult.
+//
+// Example structure:
+//
+// {
+//     id: "hpge_10cm",
+//     name: "HPGe - 10 cm",
+//     description: "Efficiency calibration at 10 cm source-detector distance.",
+//     result: {
+//         E: [...],
+//         eta: [...],
+//         etaAbsUnc: [...],
+//         etaRelUnc: [...],
+//         p: [...],
+//         cov: [[...], [...], [...], [...]],
+//         sigmaP: [...],
+//         results: [...],
+//         Efit: [...],
+//         etaFit: [...],
+//         sigmaEtaFit: [...],
+//         upper: [...],
+//         lower: [...]
+//     }
+// }
+//
+// IMPORTANT:
+// Replace the empty array below with your actual calibrations.
+// Once they are added here, visitors can open them without an
+// Excel file.
+
+const existingCalibrations = [
+    /*
+    {
+        id: "hpge_10cm",
+        name: "HPGe - 10 cm",
+        description: "Example calibration",
+        result: {
+            E: [],
+            eta: [],
+            etaAbsUnc: [],
+            etaRelUnc: [],
+            p: [],
+            cov: [[], [], [], []],
+            sigmaP: [],
+            results: [],
+            Efit: [],
+            etaFit: [],
+            sigmaEtaFit: [],
+            upper: [],
+            lower: []
+        }
+    }
+    */
+];
+
+let currentExistingCalibration = null;
+
 
 // ============================================================
 // Matrix utilities
@@ -170,8 +238,6 @@ function qrDecomposition(A) {
     const Q = zeros(m, n);
     const R = zeros(n, n);
 
-    const columns = [];
-
     for (let j = 0; j < n; j++) {
 
         let v = A.map(row => row[j]);
@@ -260,9 +326,6 @@ function weightedPolynomialFit(logE, logEta, sigmaLogEta) {
         A[i][3] = 1;
     }
 
-    // W = diag(1 / sigma)
-    // Instead of explicitly creating W, construct Aw directly.
-
     const Aw = zeros(n, deg + 1);
     const bw = new Array(n);
 
@@ -277,21 +340,13 @@ function weightedPolynomialFit(logE, logEta, sigmaLogEta) {
         bw[i] = weight * logEta[i];
     }
 
-    // QR decomposition
-
     const { Q, R } = qrDecomposition(Aw);
-
-    // Q^T * b
 
     const Qt = transpose(Q);
 
     const Qtb = matrixVectorMultiply(Qt, bw);
 
-    // R p = Q^T b
-
     const p = solveUpperTriangular(R, Qtb);
-
-    // cov = inv(R) * inv(R)^T
 
     const Rinv = inverseMatrix(R);
 
@@ -354,10 +409,6 @@ function calculateEfficiency(rows) {
     const A0Unc = [];
     const T = [];
 
-    // --------------------------------------------------------
-    // Read columns
-    // --------------------------------------------------------
-
     for (const row of rows) {
 
         E.push(Number(row[0]));
@@ -378,8 +429,6 @@ function calculateEfficiency(rows) {
 
         T.push(Number(row[10]));
     }
-
-    // Check values
 
     for (let i = 0; i < E.length; i++) {
 
@@ -403,10 +452,6 @@ function calculateEfficiency(rows) {
         }
     }
 
-    // --------------------------------------------------------
-    // Activity calculation
-    // --------------------------------------------------------
-
     const A0RelUnc = [];
     const A = [];
     const ARelUnc = [];
@@ -428,10 +473,6 @@ function calculateEfficiency(rows) {
         ARelUnc.push(relUnc);
         AAbsUnc.push(absUnc);
     }
-
-    // --------------------------------------------------------
-    // Efficiency
-    // --------------------------------------------------------
 
     const eta = [];
     const etaRelUnc = [];
@@ -457,10 +498,6 @@ function calculateEfficiency(rows) {
         etaAbsUnc.push(absoluteUnc);
     }
 
-    // --------------------------------------------------------
-    // Logarithmic transformation
-    // --------------------------------------------------------
-
     const EeV = E.map(
         value => value * 1e3
     );
@@ -477,10 +514,6 @@ function calculateEfficiency(rows) {
         (unc, i) => unc / eta[i]
     );
 
-    // --------------------------------------------------------
-    // Weighted polynomial fit
-    // --------------------------------------------------------
-
     const fit = weightedPolynomialFit(
         logE,
         logEta,
@@ -490,10 +523,6 @@ function calculateEfficiency(rows) {
     const p = fit.p;
     const cov = fit.cov;
     const sigmaP = fit.sigmaP;
-
-    // --------------------------------------------------------
-    // Fitted values
-    // --------------------------------------------------------
 
     const etaFitData = [];
 
@@ -524,10 +553,6 @@ function calculateEfficiency(rows) {
             100 * difference / etaFitData[i]
         );
     }
-
-    // --------------------------------------------------------
-    // Fitted curve
-    // --------------------------------------------------------
 
     const minE =
         Math.min(...EeV);
@@ -610,10 +635,6 @@ function calculateEfficiency(rows) {
             )
         );
     }
-
-    // --------------------------------------------------------
-    // Results
-    // --------------------------------------------------------
 
     const results = [];
 
@@ -720,7 +741,7 @@ function calculateEfficiencyAtEnergy(
 // Plot
 // ============================================================
 
-function createPlot(result) {
+function createPlot(result, plotId = "plot") {
 
     const measuredTrace = {
         x: result.E,
@@ -821,7 +842,7 @@ function createPlot(result) {
     };
 
     Plotly.newPlot(
-        "plot",
+        plotId,
         [
             uncertaintyBand,
             fitTrace,
@@ -927,15 +948,6 @@ async function processExcelFile(file) {
         const worksheet =
             workbook.Sheets[firstSheetName];
 
-        /*
-         * header: 1
-         *
-         * This returns rows as arrays.
-         * The first row is assumed to contain
-         * column headers, exactly as in the
-         * original Python implementation.
-         */
-
         const rows =
             XLSX.utils.sheet_to_json(
                 worksheet,
@@ -944,8 +956,6 @@ async function processExcelFile(file) {
                     defval: null
                 }
             );
-
-        // Remove header row
 
         const dataRows =
             rows.slice(1).filter(
@@ -970,8 +980,6 @@ async function processExcelFile(file) {
             "resultsCard"
         ).style.display = "block";
 
-        
-
         showMessage(
             `Successful processing: ${file.name}`,
             "success"
@@ -990,8 +998,308 @@ async function processExcelFile(file) {
         document.getElementById(
             "resultsCard"
         ).style.display = "none";
+    }
+}
 
-        
+
+// ============================================================
+// Existing calibration interface
+// ============================================================
+
+function showPage(page) {
+
+    document.getElementById(
+        "startPage"
+    ).classList.add("section-hidden");
+
+    document.getElementById(
+        "newCalibrationPage"
+    ).classList.add("section-hidden");
+
+    document.getElementById(
+        "existingCalibrationPage"
+    ).classList.add("section-hidden");
+
+    if (page === "start") {
+
+        document.getElementById(
+            "startPage"
+        ).classList.remove("section-hidden");
+    }
+
+    if (page === "new") {
+
+        document.getElementById(
+            "newCalibrationPage"
+        ).classList.remove("section-hidden");
+    }
+
+    if (page === "existing") {
+
+        document.getElementById(
+            "existingCalibrationPage"
+        ).classList.remove("section-hidden");
+    }
+}
+
+
+function showExistingMessage(
+    text,
+    type
+) {
+
+    const message =
+        document.getElementById(
+            "existingCalibrationMessage"
+        );
+
+    message.textContent = text;
+
+    message.className =
+        `message ${type}`;
+}
+
+
+function renderExistingCalibrationList() {
+
+    const list =
+        document.getElementById(
+            "calibrationList"
+        );
+
+    list.innerHTML = "";
+
+    if (existingCalibrations.length === 0) {
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "calibration-card";
+
+        empty.innerHTML = `
+            <div>
+                <h3>No existing calibrations available</h3>
+                <p>
+                    Add your calculated calibrations to the
+                    <code>existingCalibrations</code> array in script.js.
+                </p>
+            </div>
+        `;
+
+        list.appendChild(empty);
+
+        return;
+    }
+
+    for (const calibration of existingCalibrations) {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "calibration-card";
+
+        card.innerHTML = `
+            <div>
+                <h3>${calibration.name}</h3>
+                <p>${calibration.description || ""}</p>
+            </div>
+
+            <button
+                class="button"
+                type="button"
+                data-calibration-id="${calibration.id}"
+            >
+                Open
+            </button>
+        `;
+
+        card.querySelector("button").addEventListener(
+            "click",
+            () => openExistingCalibration(
+                calibration.id
+            )
+        );
+
+        list.appendChild(card);
+    }
+}
+
+
+function updateExistingResultsTable(results) {
+
+    const tbody =
+        document.querySelector(
+            "#existingResultsTable tbody"
+        );
+
+    tbody.innerHTML = "";
+
+    for (const row of results) {
+
+        const tr =
+            document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${row.energyKeV.toPrecision(6)}</td>
+            <td>${row.measuredEfficiency.toExponential(6)}</td>
+            <td>${row.fittedEfficiency.toExponential(6)}</td>
+            <td>${row.absoluteDifference.toExponential(6)}</td>
+            <td>${row.relativeDifference.toFixed(4)}</td>
+        `;
+
+        tbody.appendChild(tr);
+    }
+}
+
+
+function openExistingCalibration(id) {
+
+    const calibration =
+        existingCalibrations.find(
+            item => item.id === id
+        );
+
+    if (
+        !calibration ||
+        !calibration.result
+    ) {
+
+        showExistingMessage(
+            "The selected calibration is not available or is incomplete.",
+            "error"
+        );
+
+        return;
+    }
+
+    currentExistingCalibration =
+        calibration;
+
+    const result =
+        calibration.result;
+
+    document.getElementById(
+        "existingCalibrationTitle"
+    ).textContent =
+        calibration.name;
+
+    document.getElementById(
+        "existingCalibrationInfo"
+    ).innerHTML = `
+        <p>${calibration.description || ""}</p>
+    `;
+
+    createPlot(
+        result,
+        "existingPlot"
+    );
+
+    updateExistingResultsTable(
+        result.results
+    );
+
+    document.getElementById(
+        "existingResultsCard"
+    ).style.display =
+        "block";
+
+    document.getElementById(
+        "existingEnergyResult"
+    ).style.display =
+        "none";
+
+    showExistingMessage(
+        `Calibration opened: ${calibration.name}`,
+        "success"
+    );
+
+    document.getElementById(
+        "existingResultsCard"
+    ).scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+function calculateExistingEfficiency() {
+
+    if (!currentExistingCalibration) {
+
+        showExistingMessage(
+            "Please open a calibration first.",
+            "error"
+        );
+
+        return;
+    }
+
+    const energy =
+        Number(
+            document.getElementById(
+                "existingEnergyInput"
+            ).value
+        );
+
+    if (
+        !Number.isFinite(energy) ||
+        energy <= 0
+    ) {
+
+        showExistingMessage(
+            "Energy must be a positive number.",
+            "error"
+        );
+
+        return;
+    }
+
+    try {
+
+        const result =
+            calculateEfficiencyAtEnergy(
+                energy,
+                currentExistingCalibration.result.p,
+                currentExistingCalibration.result.cov
+            );
+
+        document.getElementById(
+            "existingResultEnergy"
+        ).textContent =
+            result.energyKeV.toFixed(6) +
+            " keV";
+
+        document.getElementById(
+            "existingResultEfficiency"
+        ).textContent =
+            result.eta.toExponential(6);
+
+        document.getElementById(
+            "existingResultUncertainty"
+        ).textContent =
+            "± " +
+            result.sigmaEta.toExponential(6);
+
+        document.getElementById(
+            "existingResultRelativeUncertainty"
+        ).textContent =
+            result.relativeUncertainty.toFixed(4) +
+            " %";
+
+        document.getElementById(
+            "existingEnergyResult"
+        ).style.display =
+            "block";
+
+    } catch (error) {
+
+        showExistingMessage(
+            "Error during efficiency calculation: " +
+            error.message,
+            "error"
+        );
     }
 }
 
@@ -1003,6 +1311,68 @@ async function processExcelFile(file) {
 document.addEventListener(
     "DOMContentLoaded",
     () => {
+
+        // --------------------------------------------------------
+        // Start menu
+        // --------------------------------------------------------
+
+        document.getElementById(
+            "newCalibrationButton"
+        ).addEventListener(
+            "click",
+            () => {
+                showPage("new");
+            }
+        );
+
+        document.getElementById(
+            "existingCalibrationButton"
+        ).addEventListener(
+            "click",
+            () => {
+
+                showPage("existing");
+
+                renderExistingCalibrationList();
+            }
+        );
+
+        document.getElementById(
+            "backToStartFromNew"
+        ).addEventListener(
+            "click",
+            () => {
+                showPage("start");
+            }
+        );
+
+        document.getElementById(
+            "backToStartFromExisting"
+        ).addEventListener(
+            "click",
+            () => {
+                showPage("start");
+            }
+        );
+
+        document.getElementById(
+            "existingCalculateButton"
+        ).addEventListener(
+            "click",
+            calculateExistingEfficiency
+        );
+
+        document.getElementById(
+            "existingEnergyInput"
+        ).addEventListener(
+            "keydown",
+            event => {
+
+                if (event.key === "Enter") {
+                    calculateExistingEfficiency();
+                }
+            }
+        );
 
         const fileInput =
             document.getElementById(
@@ -1030,7 +1400,9 @@ document.addEventListener(
             );
 
 
+        // --------------------------------------------------------
         // File selection
+        // --------------------------------------------------------
 
         fileInput.addEventListener(
             "change",
@@ -1053,7 +1425,9 @@ document.addEventListener(
         );
 
 
+        // --------------------------------------------------------
         // Process button
+        // --------------------------------------------------------
 
         processButton.addEventListener(
             "click",
@@ -1067,7 +1441,9 @@ document.addEventListener(
         );
 
 
+        // --------------------------------------------------------
         // Energy calculation
+        // --------------------------------------------------------
 
         calculateButton.addEventListener(
             "click",
@@ -1135,7 +1511,8 @@ document.addEventListener(
 
                     document.getElementById(
                         "energyResult"
-                    ).style.display = "block";
+                    ).style.display =
+                        "block";
 
                 } catch (error) {
 
@@ -1149,7 +1526,9 @@ document.addEventListener(
         );
 
 
+        // --------------------------------------------------------
         // Allow Enter in energy field
+        // --------------------------------------------------------
 
         energyInput.addEventListener(
             "keydown",
