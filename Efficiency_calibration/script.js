@@ -967,6 +967,8 @@ async function processExcelFile(file) {
 
         currentResult =
             calculateEfficiency(dataRows);
+        console.log("CALIBRATION RESULT:");
+        console.log(JSON.stringify(currentResult, null, 4));
 
         createPlot(
             currentResult
