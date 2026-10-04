@@ -41,30 +41,48 @@ let currentResult = null;
 // Once they are added here, visitors can open them without an
 // Excel file.
 
-const existingCalibrations = [
-    /*
-    {
-        id: "hpge_10cm",
-        name: "HPGe - 10 cm",
-        description: "Example calibration",
-        result: {
-            E: [],
-            eta: [],
-            etaAbsUnc: [],
-            etaRelUnc: [],
-            p: [],
-            cov: [[], [], [], []],
-            sigmaP: [],
-            results: [],
-            Efit: [],
-            etaFit: [],
-            sigmaEtaFit: [],
-            upper: [],
-            lower: []
+let existingCalibrations = [];
+
+
+// ============================================================
+// Load existing calibrations from JSON files
+// ============================================================
+
+async function loadExistingCalibrations() {
+
+    const calibrationFiles = [
+        "calibrations/hpge_calibration.json"
+    ];
+
+    existingCalibrations = [];
+
+    for (const file of calibrationFiles) {
+
+        try {
+
+            const response = await fetch(file);
+
+            if (!response.ok) {
+                throw new Error(
+                    `Could not load ${file}`
+                );
+            }
+
+            const calibration =
+                await response.json();
+
+            existingCalibrations.push(calibration);
+
+        } catch (error) {
+
+            console.error(
+                "Error loading calibration:",
+                file,
+                error
+            );
         }
     }
-    */
-];
+}
 
 let currentExistingCalibration = null;
 
@@ -1312,7 +1330,9 @@ function calculateExistingEfficiency() {
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    async () => {
+
+        await loadExistingCalibrations();
 
         // --------------------------------------------------------
         // Start menu
