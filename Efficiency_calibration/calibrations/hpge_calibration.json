@@ -1,7 +1,7 @@
 {
     "id": "hpge_calibration",
-    "name": "HPGe detector calibration",
-    "description": "Efficiency calibration",
+    "name": "Canberra HPGe detector calibration, 1 + 2 + 3 + 5 + 6 + detector cap",
+    "description": "The efficiency calibration was carried out in 2026.10. by Ákos Csolti",
     "result": {
         "E": [
             834850,
