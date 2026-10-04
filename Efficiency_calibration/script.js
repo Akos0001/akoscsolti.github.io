@@ -1541,3 +1541,4 @@ document.addEventListener(
         );
     }
 );
+console.log(JSON.stringify(currentResult, null, 4));
