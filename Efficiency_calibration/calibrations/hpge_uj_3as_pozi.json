@@ -1,7 +1,7 @@
 {
-    "id": "hpge_calibration",
-    "name": "HPGe detector calibration",
-    "description": "Efficiency calibration",
+    "id": "uj_det_3as_pozi_calibration",
+    "name": "BSI HPGe detector (new detector) calibration, position 3",
+    "description": "The efficiency calibration was carried out on 2026-10-13 by Ákos Csolti",
     "result": {
         "E": [
             834850,
