@@ -1,6 +1,6 @@
 {
     "id": "elr158_calibration",
-    "name": "Canberra HPGe detector calibration, 1 + 5 + 8 spacer configuration, without detector cap",
+    "name": "Canberra HPGe detector calibration, 1 + 5 + 8 without detector cap",
     "description": "The efficiency calibration was carried out on 2025-09-26 by Ákos Csolti",
     "result": {
         "E": [
