@@ -51,7 +51,10 @@ let existingCalibrations = [];
 async function loadExistingCalibrations() {
 
     const calibrationFiles = [
-        "calibrations/hpge_calibration.json"
+        "calibrations/hpge_calibration.json",
+        "calibrations/hpge_regi_158elr.json",
+        "calibrations/hpge_uj_10es_pozi.json",
+        "calibrations/hpge_uj_3as_pozi.json"
     ];
 
     existingCalibrations = [];
